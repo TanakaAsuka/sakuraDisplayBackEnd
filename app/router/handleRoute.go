@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 func handleGallery(c *fiber.Ctx) error {
@@ -54,4 +55,26 @@ func handlePixiv(c *fiber.Ctx) error {
 	fmt.Println(pixivURL)
 
 	return c.Redirect(pixivURL)
+}
+func handleUpload(c *fiber.Ctx) error {
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.SendStatus(600)
+		return err
+	}
+	files := form.File["uploadFile"]
+
+	for _, file := range files {
+		u4 := uuid.New()
+		fmt.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+
+		err := c.SaveFile(file, fmt.Sprintf("../../assets/%s", u4))
+
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("文件写入成功!")
+	return c.SendStatus(200)
 }
