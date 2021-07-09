@@ -2,12 +2,53 @@ package router
 
 import (
 	"fmt"
+	"log"
+	"sakuradisplay/database"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
+// Connect with database
+func insertData() error {
+
+	if err := database.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	// Add record into postgreSQL
+	// New Image struct
+	newUUID := uuid.New()
+	img := database.Image{
+		Author:         "焦茶",
+		Ban:            false,
+		UUID:           newUUID,
+		Description:    "光影",
+		WidthAndHeight: "1920-1080",
+		Subject:        "人物",
+		Tag:            []string{"女孩", "笑脸"},
+		URL:            "http://sakuradisplay/img/" + newUUID.String() + ".jpg",
+		Title:          "微笑的女孩",
+	}
+
+	// Insert Image into database
+	res, err := database.DB.Query("INSERT INTO images_table (author, ban, uuid, description, subject, title, url, width_and_height) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", img.Author, img.Ban, img.UUID, img.Description, img.Subject, img.Title, img.URL, img.WidthAndHeight)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(res)
+
+	return nil
+
+}
+
 func handleGallery(c *fiber.Ctx) error {
+	err := insertData()
+	if err != nil {
+		fmt.Println("插入数据出错", err)
+	}
+
 	return c.JSON(&fiber.Map{
 		"imgObj": map[string]interface{}{
 			"title":   "明日方舟德克萨斯",
