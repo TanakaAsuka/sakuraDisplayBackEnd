@@ -3,35 +3,25 @@ package router
 import (
 	"fmt"
 	"log"
+	"os"
 	"sakuradisplay/database"
+	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 // Connect with database
-func insertData() error {
+func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
 	// Add record into postgreSQL
-	// New Image struct
-	newUUID := uuid.New()
-	img := database.Image{
-		Author:         "焦茶",
-		Ban:            false,
-		UUID:           newUUID,
-		Description:    "光影",
-		WidthAndHeight: "1920-1080",
-		Subject:        "人物",
-		Tag:            []string{"女孩", "笑脸"},
-		URL:            "http://sakuradisplay/img/" + newUUID.String() + ".jpg",
-		Title:          "微笑的女孩",
-	}
 
 	// Insert Image into database
-	res, err := database.DB.Query("INSERT INTO images_table (author, ban, uuid, description, subject, title, url, width_and_height) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", img.Author, img.Ban, img.UUID, img.Description, img.Subject, img.Title, img.URL, img.WidthAndHeight)
+	res, err := database.DB.Query("INSERT INTO images_table (uuid, url, width_and_height) VALUES ($1, $2, $3)", u4, url, WidthAndHeight)
 
 	if err != nil {
 		return err
@@ -44,10 +34,6 @@ func insertData() error {
 }
 
 func handleGallery(c *fiber.Ctx) error {
-	err := insertData()
-	if err != nil {
-		fmt.Println("插入数据出错", err)
-	}
 
 	return c.JSON(&fiber.Map{
 		"imgObj": map[string]interface{}{
@@ -99,6 +85,8 @@ func handlePixiv(c *fiber.Ctx) error {
 }
 func handleUpload(c *fiber.Ctx) error {
 
+	baseHost := c.BaseURL()
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.SendStatus(600)
@@ -108,14 +96,49 @@ func handleUpload(c *fiber.Ctx) error {
 
 	for _, file := range files {
 		u4 := uuid.New()
-		fmt.Println(file.Filename, file.Size, file.Header["Content-Type"][0])
+		fmt.Println(file.Filename, file.Size, file.Header["Content-Type"])
+		// 获取文件扩展名
+		fileExtensionSlice := strings.Split(file.Filename, ".")
+		fileExtension := fileExtensionSlice[len(fileExtensionSlice)-1:][0]
 
-		err := c.SaveFile(file, fmt.Sprintf("../../assets/%s", u4))
+		// 获取当前年月日
+		timeStr := time.Now().Format("20060102")
+
+		// 检查文件夹是否存在
+		path := "./assets/" + timeStr
+		if _, err := os.Stat(path); err == nil {
+			// 文件夹存在,略过
+			fmt.Println("path exists 1", path)
+		} else {
+			// 文件夹不存在,则创建文件
+			fmt.Println("path not exists ", path)
+			err := os.MkdirAll(path, 0711)
+
+			if err != nil {
+				log.Println("Error creating directory")
+				log.Println(err)
+				return err
+			}
+		}
+		// ./assets/20270707/xxxx.jpg
+		basePath := fmt.Sprintf("%s/%s.%s", path, u4, fileExtension)
+		// http://www.sakuradisplay/20210707/xxxxx.jpg
+		// 去掉头部的字符 "./assets",先暂时这么写
+		url := baseHost + basePath[8:]
+
+		err := insertData(u4, url, "1920-1080")
+
+		if err != nil {
+			fmt.Println("插入数据出错", err)
+			return err
+		}
+		err = c.SaveFile(file, basePath)
 
 		if err != nil {
 			return err
 		}
 	}
+
 	fmt.Println("文件写入成功!")
 	return c.SendStatus(200)
 }

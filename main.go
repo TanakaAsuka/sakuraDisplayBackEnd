@@ -12,7 +12,5 @@ func main() {
 
 	router.Registe(app)
 
-	app.Static("/", "./public")
-
 	log.Fatal(app.Listen(":3000"))
 }

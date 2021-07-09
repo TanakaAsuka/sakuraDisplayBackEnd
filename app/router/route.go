@@ -22,5 +22,10 @@ func Registe(app *fiber.App) {
 	app.Get("/err", func(c *fiber.Ctx) error {
 		return fiber.NewError(782, "Custom error message")
 	})
+	app.Static("/", "./public")
+	// 服务静态文件
+	app.Get("/*", func(c *fiber.Ctx) error {
+		return c.SendFile("./assets" + c.Path())
+	})
 
 }
