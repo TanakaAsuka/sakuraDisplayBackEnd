@@ -8,6 +8,7 @@ import (
 func Registe(app *fiber.App) {
 
 	app.Use(func(c *fiber.Ctx) error {
+		// 允许跨域
 		c.Set("Access-Control-Allow-Origin", "*")
 		return c.Next()
 	})
