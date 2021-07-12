@@ -1,6 +1,7 @@
 package main
 
 import (
+	_ "image/png"
 	"log"
 	"sakuradisplay/app/router"
 

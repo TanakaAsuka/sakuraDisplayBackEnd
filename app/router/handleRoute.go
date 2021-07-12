@@ -2,10 +2,10 @@ package router
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"sakuradisplay/database"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -90,17 +90,23 @@ func handleUpload(c *fiber.Ctx) error {
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.SendStatus(600)
+		log.Println(err)
 		return err
 	}
 	files := form.File["uploadFile"]
 
 	for _, file := range files {
-		u4 := uuid.New()
-		fmt.Println(file.Filename, file.Size, file.Header["Content-Type"])
-		// 获取文件扩展名
-		fileExtensionSlice := strings.Split(file.Filename, ".")
-		fileExtension := fileExtensionSlice[len(fileExtensionSlice)-1:][0]
+		// 获取图片宽高
+		myfile, err := file.Open()
+		config, format, err := image.DecodeConfig(myfile)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+		widthAndHeight := fmt.Sprintf("%d-%d", config.Width, config.Height)
 
+		u4 := uuid.New()
+		fmt.Println(file.Filename, file.Size)
 		// 获取当前年月日
 		timeStr := time.Now().Format("20060102")
 
@@ -121,19 +127,19 @@ func handleUpload(c *fiber.Ctx) error {
 			}
 		}
 		// ./assets/20270707/xxxx.jpg
-		basePath := fmt.Sprintf("%s/%s.%s", path, u4, fileExtension)
+		basePath := fmt.Sprintf("%s/%s.%s", path, u4, format)
 		// http://www.sakuradisplay/20210707/xxxxx.jpg
 		// 去掉头部的字符 "./assets",先暂时这么写
 		url := baseHost + basePath[8:]
 
-		err := insertData(u4, url, "1920-1080")
+		err = insertData(u4, url, widthAndHeight)
 
 		if err != nil {
+			log.Println(err)
 			fmt.Println("插入数据出错", err)
 			return err
 		}
 		err = c.SaveFile(file, basePath)
-
 		if err != nil {
 			return err
 		}
