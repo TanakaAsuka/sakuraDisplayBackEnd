@@ -18,6 +18,7 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
+
 	// Add record into postgreSQL
 
 	// Insert Image into database
@@ -32,37 +33,42 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 	return nil
 
 }
+func getData(c *fiber.Ctx) (database.Images, error) {
+
+	if err := database.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	// get record from database
+	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY uuid LIMIT 10")
+	defer rows.Close()
+
+	if err != nil {
+		return database.Images{}, err
+	}
+
+	images := database.Images{}
+
+	for rows.Next() {
+		img := database.Image{}
+		if err := rows.Scan(&img.UUID, &img.URL, &img.WidthAndHeight); err != nil {
+			return database.Images{}, err // Exit if we get an error
+		}
+
+		// Append Employee to Employees
+		images.ImagesList = append(images.ImagesList, img)
+	}
+	// Return Employees in JSON format
+	return images, nil
+}
 
 func handleGallery(c *fiber.Ctx) error {
 
-	return c.JSON(&fiber.Map{
-		"imgObj": map[string]interface{}{
-			"title":   "明日方舟德克萨斯",
-			"desc":    "穿黑衣的德狗",
-			"subject": "德克萨斯",
-			"author":  "unknown",
-			"ban":     false,
-			"width":   1920,
-			"height":  1080,
-			"tag": []string{
-				"明日方舟", "同人", "单马尾",
-			},
-			"url": "http://sakuradisplay/img/v3/fie5j5j30s0hgfkc0.jpg",
-		},
-		"imgObj2": map[string]interface{}{
-			"title":   "明日方舟能天使",
-			"desc":    "吃苹果派的能天使",
-			"subject": "能天使",
-			"author":  "unknown",
-			"ban":     false,
-			"width":   1920,
-			"height":  1080,
-			"tag": []string{
-				"明日方舟", "同人", "红发",
-			},
-			"url": "http://sakuradisplay/img/v3/gfdhdhfg7543423s7u6u762v43.jpg",
-		},
-	})
+	imgs, err := getData(c)
+
+	if err != nil {
+		return nil
+	}
+	return c.JSON(imgs)
 }
 func handlePixiv(c *fiber.Ctx) error {
 	findType := c.Query("type")
@@ -99,7 +105,9 @@ func handleUpload(c *fiber.Ctx) error {
 		// 获取图片宽高
 		myfile, err := file.Open()
 		config, format, err := image.DecodeConfig(myfile)
+		fmt.Println("format:", format)
 		if err != nil {
+			c.SendString("请上传图片格式!")
 			log.Println(err)
 			return err
 		}

@@ -5,10 +5,9 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	_ "github.com/lib/pq"
 )
 
-// Database instance
+// DB instance
 var DB *sql.DB
 
 // Database settings
@@ -23,19 +22,13 @@ const (
 // Image struct
 type Image struct {
 	UUID           uuid.UUID `json:"uuid"`
-	Author         string    `json:"author"`
-	Ban            bool      `json:"ban"`
-	Description    string    `json:"description"`
 	WidthAndHeight string    `json:"widthAndHeight"`
-	Subject        string    `json:"subject"`
-	Tag            []string  `json:"tag"`
 	URL            string    `json:"url"`
-	Title          string    `json:"title"`
 }
 
 // Images struct
 type Images struct {
-	Images []Image `json:"images"`
+	ImagesList []Image `json:"images"`
 }
 
 // Connect function
