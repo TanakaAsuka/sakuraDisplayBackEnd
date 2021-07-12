@@ -8,6 +8,7 @@ import (
 func Registe(app *fiber.App) {
 
 	app.Use(func(c *fiber.Ctx) error {
+		c.Set("Access-Control-Allow-Origin", "*")
 		return c.Next()
 	})
 	app.Get("/gallery", func(c *fiber.Ctx) error {
