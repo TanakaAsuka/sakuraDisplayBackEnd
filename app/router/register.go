@@ -17,10 +17,16 @@ func handleRegister(c *fiber.Ctx) error {
 		log.Fatal(err)
 	}
 
+	fmt.Println()
+
 	// Add record into postgreSQL
-	username := "yixuan4"
-	nickname := "逸轩"
-	password := "123456"
+	username := c.FormValue("username")
+	nickname := c.FormValue("nickname")
+	password := c.FormValue("password")
+
+	fmt.Printf("username:%s,password:%s", username, password)
+
+	// 验证用户名密码
 
 	salt := time.Now().Unix()
 	m5 := md5.New()
@@ -41,6 +47,8 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 
 	fmt.Println(res)
+
+	c.SendStatus(200)
 
 	return c.SendString("注册成功")
 }
