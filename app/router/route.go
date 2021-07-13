@@ -1,6 +1,9 @@
 package router
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -11,6 +14,17 @@ func Registe(app *fiber.App) {
 		// 允许跨域
 		c.Set("Access-Control-Allow-Origin", "*")
 		return c.Next()
+	})
+	app.Get("/register", func(c *fiber.Ctx) error {
+		err := handleRegister(c)
+		if err != nil {
+			fmt.Println(err)
+			return errors.New("注册出错")
+		}
+		return nil
+	})
+	app.Get("/login", func(c *fiber.Ctx) error {
+		return handleLogin(c)
 	})
 	app.Get("/gallery", func(c *fiber.Ctx) error {
 		return handleGallery(c)

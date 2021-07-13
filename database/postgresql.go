@@ -31,6 +31,14 @@ type Images struct {
 	ImagesList []Image `json:"images"`
 }
 
+// User table
+type User struct {
+	UserName string
+	NickName string
+	Salt     string
+	Password string
+}
+
 // Connect function
 func Connect() error {
 	var err error
