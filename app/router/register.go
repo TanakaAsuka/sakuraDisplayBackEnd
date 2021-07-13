@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+	"regexp"
 	"sakuradisplay/database"
 	"time"
 
@@ -24,9 +25,52 @@ func handleRegister(c *fiber.Ctx) error {
 	nickname := c.FormValue("nickname")
 	password := c.FormValue("password")
 
-	fmt.Printf("username:%s,password:%s", username, password)
+	parternWrap := map[string]string{
+		username: database.UserPattern,
+		nickname: database.NickPattern,
+		password: database.PassPattern,
+	}
+
+	fmt.Printf("username:%s,password:%s\n", username, password)
 
 	// 验证用户名密码
+
+	for k, v := range parternWrap {
+		match, err := regexp.MatchString(v, k)
+		if err != nil {
+			return err
+		}
+		if !match {
+			return c.JSON(&fiber.Map{
+				"err": 1,
+				"msg": "用户名或密码非法",
+			})
+		}
+	}
+	// 查询用户是否存在
+	queryStr := fmt.Sprintf("SELECT * FROM user_table WHERE username='%s'", username)
+	fmt.Println("queryStr:", queryStr)
+
+	rows, err := database.DB.Query(queryStr)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer rows.Close()
+	user := database.User{}
+	for rows.Next() {
+		if err := rows.Scan(&user.UserName, &user.NickName, &user.Salt, &user.Password); err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
+	fmt.Println("userResult:", user)
+	if user.UserName == username {
+		return c.JSON(&fiber.Map{
+			"err": 1,
+			"msg": "用户名已注册",
+		})
+	}
 
 	salt := time.Now().Unix()
 	m5 := md5.New()
@@ -49,6 +93,8 @@ func handleRegister(c *fiber.Ctx) error {
 	fmt.Println(res)
 
 	c.SendStatus(200)
-
-	return c.SendString("注册成功")
+	return c.JSON(&fiber.Map{
+		"err": 0,
+		"msg": "注册成功",
+	})
 }

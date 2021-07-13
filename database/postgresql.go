@@ -52,6 +52,15 @@ func Connect() error {
 	return nil
 }
 
+//NickPattern 用户昵称正则：限16个字符，支持中英文、数字、减号或下划线
+var NickPattern = "^[\u4e00-\u9fa5_a-zA-Z0-9-]{1,16}$"
+
+//UserPattern 用户名正则，4到16位（字母，数字，下划线）
+var UserPattern = "^[a-zA-Z0-9_]{6,16}$"
+
+//PassPattern 6-20 位，字母、数字、字符
+var PassPattern = "^([A-Z]|[a-z]|[0-9]|[^-=[];,./~!@#$%^*()_+}{:?]){6,20}$"
+
 // func main() {
 // 	// Connect with database
 // 	if err := Connect(); err != nil {
