@@ -39,7 +39,7 @@ func getData(c *fiber.Ctx) (database.Images, error) {
 		log.Fatal(err)
 	}
 	// get record from database
-	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY uuid LIMIT 10")
+	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY random() LIMIT 10")
 	defer rows.Close()
 
 	if err != nil {
