@@ -56,10 +56,10 @@ func Connect() error {
 var NickPattern = "^[\u4e00-\u9fa5_a-zA-Z0-9-]{1,16}$"
 
 //UserPattern 用户名正则，4到16位（字母，数字，下划线）
-var UserPattern = "^[a-zA-Z0-9_]{6,16}$"
+var UserPattern = "^[a-zA-Z0-9_]{4,16}$"
 
-//PassPattern 6-20 位，字母、数字、字符
-var PassPattern = "^([A-Z]|[a-z]|[0-9]|[^-=[];,./~!@#$%^*()_+}{:?]){6,20}$"
+//PassPattern 6-18 位，字母、数字、下划线
+var PassPattern = "^[a-zA-Z0-9_]{5,17}$"
 
 // func main() {
 // 	// Connect with database

@@ -3,9 +3,9 @@ package router
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"sakuradisplay/database"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,10 +17,33 @@ func handleLogin(c *fiber.Ctx) error {
 	}
 
 	// Add record into postgreSQL
-	username := "yixuan4"
+	username := c.FormValue("username")
 	// nickname := "逸轩"
-	password := "123456"
+	password := c.FormValue("password")
 
+	fmt.Println(username, password)
+	parternWrap := map[string]string{
+		username: database.UserPattern,
+		password: database.PassPattern,
+	}
+
+	fmt.Printf("username:%s,password:%s\n", username, password)
+
+	// 验证用户名密码
+
+	for k, v := range parternWrap {
+		match, err := regexp.MatchString(v, k)
+		if err != nil {
+			return err
+		}
+		if !match {
+			return c.JSON(&fiber.Map{
+				"err": 1,
+				"msg": "用户名或密码非法",
+			})
+		}
+	}
+	// 查询数据库用户是否存在
 	queryStr := fmt.Sprintf("SELECT * FROM user_table WHERE username='%s'", username)
 	fmt.Println("queryStr:", queryStr)
 
@@ -38,6 +61,12 @@ func handleLogin(c *fiber.Ctx) error {
 		}
 	}
 	fmt.Println("userResult:", user)
+	if user.UserName == "" {
+		return c.JSON(&fiber.Map{
+			"err": 1,
+			"msg": "用户名或密码不正确",
+		})
+	}
 
 	m5 := md5.New()
 	// 密码
@@ -49,9 +78,15 @@ func handleLogin(c *fiber.Ctx) error {
 	fmt.Println("passResult:", passResult)
 
 	if passResult != user.Password {
-		return errors.New("用户名或密码不正确")
+		return c.JSON(&fiber.Map{
+			"err": 1,
+			"msg": "用户名或密码不正确",
+		})
 	}
 
-	return c.SendString("登录成功")
+	return c.JSON(&fiber.Map{
+		"err": 0,
+		"msg": "登录成功！",
+	})
 
 }
