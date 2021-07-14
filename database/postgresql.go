@@ -39,6 +39,9 @@ type User struct {
 	Password string
 }
 
+// Admin admin
+var Admin = []string{"admin_114115", "admin_123"}
+
 // Connect function
 func Connect() error {
 	var err error

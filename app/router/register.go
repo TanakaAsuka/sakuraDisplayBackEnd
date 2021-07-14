@@ -85,7 +85,6 @@ func handleRegister(c *fiber.Ctx) error {
 
 	// Insert user into database
 	res, err := database.DB.Query("INSERT INTO user_table (username, nickname, salt,password) VALUES ($1, $2, $3,$4)", username, nickname, salt, passResult)
-
 	if err != nil {
 		return err
 	}
