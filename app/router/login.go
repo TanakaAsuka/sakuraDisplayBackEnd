@@ -2,6 +2,8 @@ package router
 
 import (
 	"crypto/md5"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -18,10 +20,7 @@ func handleLogin(c *fiber.Ctx) error {
 
 	// Add record into postgreSQL
 	username := c.FormValue("username")
-	// nickname := "逸轩"
 	password := c.FormValue("password")
-
-	fmt.Println(username, password)
 	parternWrap := map[string]string{
 		username: database.UserPattern,
 		password: database.PassPattern,
@@ -45,7 +44,6 @@ func handleLogin(c *fiber.Ctx) error {
 	}
 	// 查询数据库用户是否存在
 	queryStr := fmt.Sprintf("SELECT * FROM user_table WHERE username='%s'", username)
-	fmt.Println("queryStr:", queryStr)
 
 	rows, err := database.DB.Query(queryStr)
 	if err != nil {
@@ -61,6 +59,7 @@ func handleLogin(c *fiber.Ctx) error {
 		}
 	}
 	fmt.Println("userResult:", user)
+	// 用户名为空
 	if user.UserName == "" {
 		return c.JSON(&fiber.Map{
 			"err": 1,
@@ -76,7 +75,7 @@ func handleLogin(c *fiber.Ctx) error {
 	st := m5.Sum(nil)
 	passResult := hex.EncodeToString(st)
 	fmt.Println("passResult:", passResult)
-
+	// 用户密码不对
 	if passResult != user.Password {
 		return c.JSON(&fiber.Map{
 			"err": 1,
@@ -84,9 +83,54 @@ func handleLogin(c *fiber.Ctx) error {
 		})
 	}
 
+	// 持久化
+	// sess, err := store.Get(c)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	panic(err)
+	// }
+	// sessID := sess.Get(user.UserName)
+	// fmt.Println("sessID:", sessID)
+	// if sessID == nil {
+	// 	// 如果没有sessionID
+	// 	token, err := GenerateRandomString(64)
+	// 	if err != nil {
+	// 		// Serve an appropriately vague error to the
+	// 		// user, but log the details internally.
+	// 		fmt.Println(err)
+	// 	}
+	// 	fmt.Println("token:", token)
+	// 	sess.Set(user.UserName, token)
+	// }
+
 	return c.JSON(&fiber.Map{
 		"err": 0,
 		"msg": "登录成功！",
 	})
 
+}
+
+// GenerateRandomBytes returns securely generated random bytes.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomBytes(n int) ([]byte, error) {
+	b := make([]byte, n)
+	_, err := rand.Read(b)
+	// Note that err == nil only if we read len(b) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// GenerateRandomString returns a URL-safe, base64 encoded
+// securely generated random string.
+// It will return an error if the system's secure random
+// number generator fails to function correctly, in which
+// case the caller should not continue.
+func GenerateRandomString(s int) (string, error) {
+	b, err := GenerateRandomBytes(s)
+	return base64.URLEncoding.EncodeToString(b), err
 }

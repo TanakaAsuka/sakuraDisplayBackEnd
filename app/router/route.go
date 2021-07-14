@@ -5,7 +5,10 @@ import (
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/session"
 )
+
+var store = session.New()
 
 // Registe all route
 func Registe(app *fiber.App) {
