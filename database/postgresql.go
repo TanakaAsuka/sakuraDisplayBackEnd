@@ -37,10 +37,11 @@ type User struct {
 	NickName string
 	Salt     string
 	Password string
+	Role     string
 }
 
 // Admin admin
-var Admin = []string{"admin_114115", "admin_123"}
+var Admin = []string{"admin_yixuan", "admin_123", "admin_1", "admin_2", "admin_3", "admin_4"}
 
 // Connect function
 func Connect() error {

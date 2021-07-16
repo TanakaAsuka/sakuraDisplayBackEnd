@@ -89,7 +89,7 @@ func handlePixiv(c *fiber.Ctx) error {
 
 	return c.Redirect(pixivURL)
 }
-func handleGetUpload(c *fiber.Ctx) error {
+func handleUserAuth(c *fiber.Ctx) error {
 	sess, err := store.Get(c)
 	if err != nil {
 		fmt.Println(err)

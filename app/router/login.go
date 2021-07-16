@@ -55,7 +55,7 @@ func handleLogin(c *fiber.Ctx) error {
 	defer rows.Close()
 	user := database.User{}
 	for rows.Next() {
-		if err := rows.Scan(&user.UserName, &user.NickName, &user.Salt, &user.Password); err != nil {
+		if err := rows.Scan(&user.UserName, &user.NickName, &user.Salt, &user.Password, &user.Role); err != nil {
 			fmt.Println(err)
 			return err
 		}

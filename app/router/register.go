@@ -59,7 +59,7 @@ func handleRegister(c *fiber.Ctx) error {
 	defer rows.Close()
 	user := database.User{}
 	for rows.Next() {
-		if err := rows.Scan(&user.UserName, &user.NickName, &user.Salt, &user.Password); err != nil {
+		if err := rows.Scan(&user.UserName, &user.NickName, &user.Salt, &user.Password, &user.Role); err != nil {
 			fmt.Println(err)
 			return err
 		}
@@ -84,16 +84,34 @@ func handleRegister(c *fiber.Ctx) error {
 	// fmt.Println(st, hex.EncodeToString(st))
 
 	// Insert user into database
-	res, err := database.DB.Query("INSERT INTO user_table (username, nickname, salt,password) VALUES ($1, $2, $3,$4)", username, nickname, salt, passResult)
+	// 管理员注册
+	for _, admin := range database.Admin {
+
+		fmt.Println("username:", username)
+		if username == admin {
+			res, err := database.DB.Query("INSERT INTO user_table (username, nickname, salt,password,role) VALUES ($1, $2, $3,$4,$5)", username, nickname, salt, passResult, "admin")
+			if err != nil {
+				return err
+			}
+			fmt.Println(res)
+			return c.Status(200).JSON(&fiber.Map{
+				"err":  0,
+				"msg":  "注册成功",
+				"role": "admin",
+			})
+		}
+	}
+	// 普通用户注册
+	res, err := database.DB.Query("INSERT INTO user_table (username, nickname, salt,password,role) VALUES ($1, $2, $3,$4,$5)", username, nickname, salt, passResult, "visitor")
 	if err != nil {
 		return err
 	}
 
 	fmt.Println(res)
 
-	c.SendStatus(200)
-	return c.JSON(&fiber.Map{
-		"err": 0,
-		"msg": "注册成功",
+	return c.Status(200).JSON(&fiber.Map{
+		"err":  0,
+		"msg":  "注册成功",
+		"role": "visitor",
 	})
 }
