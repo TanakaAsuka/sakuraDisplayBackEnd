@@ -15,9 +15,9 @@ func Registe(app *fiber.App) {
 
 	app.Use(func(c *fiber.Ctx) error {
 		// 允许跨域
-		c.Set("Access-Control-Allow-Origin", "*")
-		c.Set("Access-Control-Allow-Methods", "GET")
-		c.Set("Access-Control-Allow-Methods", "POST")
+		// c.Set("Access-Control-Allow-Origin", "*")
+		// c.Set("Access-Control-Allow-Methods", "GET")
+		// c.Set("Access-Control-Allow-Methods", "POST")
 
 		return c.Next()
 	})
@@ -30,13 +30,28 @@ func Registe(app *fiber.App) {
 		return nil
 	})
 	app.Get("/login", func(c *fiber.Ctx) error {
+
 		return handleLogin(c)
+	})
+	app.Get("/test", func(c *fiber.Ctx) error {
+		sess, err := store.Get(c)
+		if err != nil {
+			fmt.Println(err)
+			panic(err)
+		}
+		name := sess.Get("username")
+
+		return c.SendString(fmt.Sprintf("%v", name))
+
 	})
 	app.Get("/gallery", func(c *fiber.Ctx) error {
 		return handleGallery(c)
 	})
 	app.Get("/pixiv", func(c *fiber.Ctx) error {
 		return handlePixiv(c)
+	})
+	app.Get("/upload", func(c *fiber.Ctx) error {
+		return handleGetUpload(c)
 	})
 	app.Post("/upload", func(c *fiber.Ctx) error {
 		return handleUpload(c)

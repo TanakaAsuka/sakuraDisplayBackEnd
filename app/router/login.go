@@ -14,6 +14,7 @@ import (
 )
 
 func handleLogin(c *fiber.Ctx) error {
+
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
@@ -42,6 +43,7 @@ func handleLogin(c *fiber.Ctx) error {
 			})
 		}
 	}
+
 	// 查询数据库用户是否存在
 	queryStr := fmt.Sprintf("SELECT * FROM user_table WHERE username='%s'", username)
 
@@ -84,28 +86,30 @@ func handleLogin(c *fiber.Ctx) error {
 	}
 
 	// 持久化
-	// sess, err := store.Get(c)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	panic(err)
-	// }
-	// sessID := sess.Get(user.UserName)
-	// fmt.Println("sessID:", sessID)
-	// if sessID == nil {
-	// 	// 如果没有sessionID
-	// 	token, err := GenerateRandomString(64)
-	// 	if err != nil {
-	// 		// Serve an appropriately vague error to the
-	// 		// user, but log the details internally.
-	// 		fmt.Println(err)
-	// 	}
-	// 	fmt.Println("token:", token)
-	// 	sess.Set(user.UserName, token)
-	// }
+	sess, err := store.Get(c)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	if name := sess.Get("username"); name == nil {
+		sess.Set("username", user.UserName)
+
+		// Save session
+		if err := sess.Save(); err != nil {
+			panic(err)
+		}
+
+		return c.JSON(&fiber.Map{
+			"err":  0,
+			"msg":  "登录成功！",
+			"name": username,
+		})
+
+	}
 
 	return c.JSON(&fiber.Map{
 		"err": 0,
-		"msg": "登录成功！",
+		"msg": "已经登录过了！",
 	})
 
 }

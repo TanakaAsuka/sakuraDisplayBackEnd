@@ -89,7 +89,41 @@ func handlePixiv(c *fiber.Ctx) error {
 
 	return c.Redirect(pixivURL)
 }
+func handleGetUpload(c *fiber.Ctx) error {
+	sess, err := store.Get(c)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	if name := sess.Get("username"); name == nil {
+
+		return c.Status(200).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "请先登录",
+		})
+
+	}
+	return c.Status(200).JSON(&fiber.Map{
+		"err": 0,
+		"msg": "用户已登录",
+	})
+}
 func handleUpload(c *fiber.Ctx) error {
+	// 如果用户没登录的话
+	sess, err := store.Get(c)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	if name := sess.Get("username"); name == nil {
+
+		return c.Status(200).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "请先登录",
+		})
+
+	}
+	// 处理登录用户上传的图片
 
 	baseHost := c.BaseURL()
 
