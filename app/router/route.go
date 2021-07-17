@@ -63,7 +63,11 @@ func Registe(app *fiber.App) {
 	app.Static("/", "./public")
 	// 服务静态文件
 	app.Get("/*", func(c *fiber.Ctx) error {
-		return c.SendFile("./assets" + c.Path())
+		err := c.SendFile("./assets" + c.Path())
+		if err != nil {
+			return c.SendStatus(404)
+		}
+		return nil
 	})
 
 }
