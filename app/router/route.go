@@ -3,6 +3,7 @@ package router
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
@@ -22,6 +23,7 @@ func Registe(app *fiber.App) {
 		return c.Next()
 	})
 	app.Post("/register", func(c *fiber.Ctx) error {
+		log.Printf("IP:%s访问接口register", c.IP())
 		err := handleRegister(c)
 		if err != nil {
 			fmt.Println(err)
@@ -30,6 +32,7 @@ func Registe(app *fiber.App) {
 		return nil
 	})
 	app.Get("/login", func(c *fiber.Ctx) error {
+		log.Printf("IP:%s访问接口login", c.IP())
 
 		return handleLogin(c)
 	})
@@ -44,9 +47,11 @@ func Registe(app *fiber.App) {
 		return handleUserAuth(c)
 	})
 	app.Post("/upload", func(c *fiber.Ctx) error {
+		log.Printf("IP:%s访问接口upload", c.IP())
 		return handleUpload(c)
 	})
 	app.Post("/delete", func(c *fiber.Ctx) error {
+		log.Printf("IP:%s访问接口delete", c.IP())
 		return handleDelete(c)
 	})
 	app.Get("/test", func(c *fiber.Ctx) error {
