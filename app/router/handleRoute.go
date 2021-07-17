@@ -107,10 +107,17 @@ func handleUserAuth(c *fiber.Ctx) error {
 		})
 
 	}
+	isAdmin := false
+	for _, v := range database.Admin {
+		if v == name {
+			isAdmin = true
+		}
+	}
 	return c.Status(200).JSON(&fiber.Map{
 		"err":      0,
 		"msg":      "用户已登录",
 		"username": name,
+		"isAdmin":  isAdmin,
 	})
 }
 func handleUpload(c *fiber.Ctx) error {
@@ -120,7 +127,8 @@ func handleUpload(c *fiber.Ctx) error {
 		fmt.Println(err)
 		panic(err)
 	}
-	if name := sess.Get("username"); name == nil {
+	name := sess.Get("username")
+	if name == nil {
 
 		return c.Status(200).JSON(&fiber.Map{
 			"err": 1,
@@ -128,6 +136,20 @@ func handleUpload(c *fiber.Ctx) error {
 		})
 
 	}
+	isAdmin := false
+	for _, v := range database.Admin {
+		fmt.Println("v:", v)
+		if name == v {
+			isAdmin = true
+		}
+	}
+	if !isAdmin {
+		return c.Status(403).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "您不是管理员，没有权限操作",
+		})
+	}
+
 	// 处理登录用户上传的图片
 
 	baseHost := c.BaseURL()
