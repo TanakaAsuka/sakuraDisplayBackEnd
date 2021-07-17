@@ -4,12 +4,16 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 )
 
-var store = session.New()
+// 配置session过期事件
+var store = session.New(session.Config{
+	Expiration: 7 * 24 * time.Hour,
+})
 
 // Registe all route
 func Registe(app *fiber.App) {
