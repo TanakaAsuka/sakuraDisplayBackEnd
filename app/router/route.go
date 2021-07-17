@@ -46,6 +46,9 @@ func Registe(app *fiber.App) {
 	app.Post("/upload", func(c *fiber.Ctx) error {
 		return handleUpload(c)
 	})
+	app.Post("/delete", func(c *fiber.Ctx) error {
+		return handleDelete(c)
+	})
 	app.Get("/test", func(c *fiber.Ctx) error {
 		sess, err := store.Get(c)
 		if err != nil {

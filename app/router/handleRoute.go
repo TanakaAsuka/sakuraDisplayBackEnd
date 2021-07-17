@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sakuradisplay/database"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -95,7 +96,10 @@ func handleUserAuth(c *fiber.Ctx) error {
 		fmt.Println(err)
 		panic(err)
 	}
-	if name := sess.Get("username"); name == nil {
+
+	name := sess.Get("username")
+
+	if name == nil {
 
 		return c.Status(200).JSON(&fiber.Map{
 			"err": 1,
@@ -104,8 +108,9 @@ func handleUserAuth(c *fiber.Ctx) error {
 
 	}
 	return c.Status(200).JSON(&fiber.Map{
-		"err": 0,
-		"msg": "用户已登录",
+		"err":      0,
+		"msg":      "用户已登录",
+		"username": name,
 	})
 }
 func handleUpload(c *fiber.Ctx) error {
@@ -189,4 +194,114 @@ func handleUpload(c *fiber.Ctx) error {
 
 	fmt.Println("文件写入成功!")
 	return c.SendStatus(200)
+}
+func handleDelete(c *fiber.Ctx) error {
+	// 如果用户没登录的话
+	// 如果不是管理员,则不可以删除,跳回首页
+	sess, err := store.Get(c)
+	if err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+	name := sess.Get("username")
+	if name == nil {
+
+		return c.Status(200).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "请先登录",
+		})
+
+	}
+
+	if name != "admin_yixuan" {
+		return c.Status(200).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "您不是超级管理员，没有权限操作",
+		})
+	}
+	// 处理登录用户要删除的图片
+
+	picID := string(c.FormValue("picID"))
+
+	fmt.Println("pic_ID:", picID)
+
+	// 查询数据库是否有图片
+	if err := database.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	// get record from database
+
+	rows, err := database.DB.Query("SELECT * FROM images_table WHERE uuid= $1", picID)
+	defer rows.Close()
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	image := database.Image{}
+
+	for rows.Next() {
+		if err := rows.Scan(&image.UUID, &image.URL, &image.WidthAndHeight); err != nil {
+			fmt.Println(err)
+			return err // Exit if we get an error
+		}
+
+	}
+
+	fmt.Println("image:", image.URL)
+
+	if image.URL == "" {
+		return c.Status(200).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "图片ID不存在",
+		})
+	}
+
+	imgPathSlice := strings.Split(image.URL, "/")
+	fmt.Println("imgPathSlice:", imgPathSlice)
+	imgPathSlice = imgPathSlice[len(imgPathSlice)-2:]
+	imgPathStr := ""
+	for _, v := range imgPathSlice {
+		imgPathStr += "/" + v
+	}
+	//源文件路径
+	imgPathStr = "./assets" + imgPathStr
+	fmt.Println("imgPathStr:", imgPathStr)
+	// // 检查文件夹是否存在
+	err = os.Remove(imgPathStr) //删除文件test.txt
+
+	if err != nil {
+
+		//如果删除失败则输出 file remove Error!
+
+		fmt.Println("file remove Error!")
+
+		//输出错误详细信息
+
+		fmt.Printf("%s", err)
+		return c.Status(500).JSON(&fiber.Map{
+			"err": 1,
+			"msg": "服务器内部错误！",
+		})
+
+	}
+	//如果删除成功则输出 file remove OK!
+	fmt.Print("file remove OK!")
+
+	// 删除数据库记录
+	// Delete image from database
+	res, err := database.DB.Query("DELETE FROM images_table WHERE uuid = $1", image.UUID)
+	if err != nil {
+		return err
+	}
+
+	// Print result
+	log.Println(res)
+
+	return c.Status(200).JSON(&fiber.Map{
+		"err": 0,
+		"msg": "图片已被删除",
+	})
+
 }

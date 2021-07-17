@@ -48,10 +48,8 @@ func handleRegister(c *fiber.Ctx) error {
 		}
 	}
 	// 查询用户是否存在
-	queryStr := fmt.Sprintf("SELECT * FROM user_table WHERE username='%s'", username)
-	fmt.Println("queryStr:", queryStr)
 
-	rows, err := database.DB.Query(queryStr)
+	rows, err := database.DB.Query("SELECT * FROM user_table WHERE username=$1", username)
 	if err != nil {
 		fmt.Println(err)
 		return nil
