@@ -43,6 +43,7 @@ func getData(c *fiber.Ctx) (database.Images, error) {
 	// get record from database
 	// 随机获取100条数据
 	// "SELECT * FROM images_table ORDER BY random() LIMIT 100"
+	// SELECT * FROM images_table  LIMIT 10 OFFSET $1
 	rows, err := database.DB.Query("SELECT * FROM images_table  LIMIT 10 OFFSET $1", offset)
 	defer rows.Close()
 
