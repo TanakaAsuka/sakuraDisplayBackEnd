@@ -41,7 +41,7 @@ func Registe(app *fiber.App) {
 		return handleLogin(c)
 	})
 
-	app.Get("/gallery", func(c *fiber.Ctx) error {
+	app.Get("/gallery/:next", func(c *fiber.Ctx) error {
 		return handleGallery(c)
 	})
 	app.Get("/pixiv", func(c *fiber.Ctx) error {

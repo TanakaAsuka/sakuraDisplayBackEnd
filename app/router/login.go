@@ -63,7 +63,7 @@ func handleLogin(c *fiber.Ctx) error {
 	if user.UserName == "" {
 		return c.JSON(&fiber.Map{
 			"err": 1,
-			"msg": "用户名或密码不正确",
+			"msg": "用户不存在！",
 		})
 	}
 

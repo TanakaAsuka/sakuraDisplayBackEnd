@@ -35,12 +35,15 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 
 }
 func getData(c *fiber.Ctx) (database.Images, error) {
+	offset := c.Params("next")
 
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
 	}
 	// get record from database
-	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY random() LIMIT 10")
+	// 随机获取100条数据
+	// "SELECT * FROM images_table ORDER BY random() LIMIT 100"
+	rows, err := database.DB.Query("SELECT * FROM images_table  LIMIT 10 OFFSET $1", offset)
 	defer rows.Close()
 
 	if err != nil {
