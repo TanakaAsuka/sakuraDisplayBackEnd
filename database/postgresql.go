@@ -21,6 +21,7 @@ const (
 
 // Image struct
 type Image struct {
+	ID             int64     `json:"id"`
 	UUID           uuid.UUID `json:"uuid"`
 	WidthAndHeight string    `json:"widthAndHeight"`
 	URL            string    `json:"url"`

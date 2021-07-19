@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sakuradisplay/database"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,8 +35,9 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 	return nil
 
 }
-func getData(c *fiber.Ctx) (database.Images, error) {
-	offset := c.Params("next")
+func getData(c *fiber.Ctx, nextPage int) (database.Images, error) {
+
+	images := database.Images{}
 
 	if err := database.Connect(); err != nil {
 		log.Fatal(err)
@@ -44,36 +46,61 @@ func getData(c *fiber.Ctx) (database.Images, error) {
 	// 随机获取100条数据
 	// "SELECT * FROM images_table ORDER BY random() LIMIT 100"
 	// SELECT * FROM images_table  LIMIT 10 OFFSET $1
-	rows, err := database.DB.Query("SELECT * FROM images_table  LIMIT 10 OFFSET $1", offset)
+	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY id DESC")
 	defer rows.Close()
 
 	if err != nil {
 		return database.Images{}, err
 	}
 
-	images := database.Images{}
-
 	for rows.Next() {
 		img := database.Image{}
-		if err := rows.Scan(&img.UUID, &img.URL, &img.WidthAndHeight); err != nil {
+		if err := rows.Scan(&img.ID, &img.UUID, &img.URL, &img.WidthAndHeight); err != nil {
 			return database.Images{}, err // Exit if we get an error
 		}
 
 		// Append Employee to Employees
 		images.ImagesList = append(images.ImagesList, img)
 	}
-	// Return Employees in JSON format
+	// Return images in JSON format
 	return images, nil
+
 }
 
+var imgsTotal database.Images
+var err error
+
 func handleGallery(c *fiber.Ctx) error {
+	offset := c.Params("next")
+	nextPage, err := strconv.Atoi(offset)
+	fmt.Println("nextPage:", nextPage)
+	if err == nil {
+		// string转int转换成功
 
-	imgs, err := getData(c)
+		if nextPage == 0 {
+			// 首次请求
+			imgsTotal, err = getData(c, nextPage)
+			if err != nil {
+				return nil
+			}
+			var imgsResult database.Images
+			imgsResult.ImagesList = imgsTotal.ImagesList[:10]
+			return c.JSON(imgsResult)
+		}
+		var imgsResult database.Images
+		var totalLength = len(imgsTotal.ImagesList)
+		if nextPage < totalLength {
+			imgsResult.ImagesList = imgsTotal.ImagesList[nextPage:]
+			return c.JSON(imgsResult)
+		}
+		return c.JSON(&fiber.Map{
+			"err": 1,
+			"msg": "到头了",
+		})
 
-	if err != nil {
-		return nil
 	}
-	return c.JSON(imgs)
+	return nil
+
 }
 func handlePixiv(c *fiber.Ctx) error {
 	findType := c.Query("type")
