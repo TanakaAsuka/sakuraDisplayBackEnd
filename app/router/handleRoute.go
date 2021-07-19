@@ -1,4 +1,4 @@
-package router
+﻿package router
 
 import (
 	"fmt"
@@ -84,13 +84,20 @@ func handleGallery(c *fiber.Ctx) error {
 				return nil
 			}
 			var imgsResult database.Images
-			imgsResult.ImagesList = imgsTotal.ImagesList[:10]
+			var lenToal = len(imgsTotal.ImagesList)
+			if lenToal < 30 {
+				return c.JSON(&fiber.Map{
+					"err": 1,
+					"msg": "数据为空",
+				})
+			}
+			imgsResult.ImagesList = imgsTotal.ImagesList[:30]
 			return c.JSON(imgsResult)
 		}
 		var imgsResult database.Images
 		var totalLength = len(imgsTotal.ImagesList)
-		if nextPage < totalLength {
-			imgsResult.ImagesList = imgsTotal.ImagesList[nextPage:]
+		if 30+nextPage < totalLength {
+			imgsResult.ImagesList = imgsTotal.ImagesList[30+nextPage:]
 			return c.JSON(imgsResult)
 		}
 		return c.JSON(&fiber.Map{
@@ -209,6 +216,8 @@ func handleUpload(c *fiber.Ctx) error {
 		fmt.Println(file.Filename, file.Size)
 		// 获取当前年月日
 		timeStr := time.Now().Format("20060102")
+		timeStr = timeStr[:6] + "/" + timeStr[6:]
+		fmt.Println("timeStr:", timeStr)
 
 		// 检查文件夹是否存在
 		path := "./assets/" + timeStr
@@ -226,7 +235,7 @@ func handleUpload(c *fiber.Ctx) error {
 				return err
 			}
 		}
-		// ./assets/20270707/xxxx.jpg
+		// ./assets/20210707/xxxx.jpg
 		basePath := fmt.Sprintf("%s/%s.%s", path, u4, format)
 		// http://www.sakuradisplay/20210707/xxxxx.jpg
 		// 去掉头部的字符 "./assets",先暂时这么写
