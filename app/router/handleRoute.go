@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 	return nil
 
 }
-func getData(c *fiber.Ctx, nextPage int) (database.Images, error) {
+func getAllImagesData(c *fiber.Ctx, nextPage int) (database.Images, error) {
 
 	images := database.Images{}
 
@@ -43,9 +43,8 @@ func getData(c *fiber.Ctx, nextPage int) (database.Images, error) {
 		log.Fatal(err)
 	}
 	// get record from database
-	// 随机获取100条数据
+	// 获取全部的数据，按最新的排序，分批次传给前端，此处数据量大了可能有性能问题
 	// "SELECT * FROM images_table ORDER BY random() LIMIT 100"
-	// SELECT * FROM images_table  LIMIT 10 OFFSET $1
 	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY id DESC")
 	defer rows.Close()
 
@@ -69,17 +68,19 @@ func getData(c *fiber.Ctx, nextPage int) (database.Images, error) {
 
 var imgsTotal database.Images
 var err error
+var last = 30
+var isFirstGreaterThanLenOfImgsTotal = false
 
 func handleGallery(c *fiber.Ctx) error {
 	offset := c.Params("next")
 	nextPage, err := strconv.Atoi(offset)
-	fmt.Println("nextPage:", nextPage)
+
 	if err == nil {
 		// string转int转换成功
 
-		if nextPage == 0 {
+		if nextPage == 30 {
 			// 首次请求
-			imgsTotal, err = getData(c, nextPage)
+			imgsTotal, err = getAllImagesData(c, nextPage)
 			if err != nil {
 				return nil
 			}
@@ -91,19 +92,31 @@ func handleGallery(c *fiber.Ctx) error {
 					"msg": "数据为空",
 				})
 			}
-			imgsResult.ImagesList = imgsTotal.ImagesList[:30]
+			// 首次请求，给30个数据
+			imgsResult.ImagesList = imgsTotal.ImagesList[:nextPage]
+			last = nextPage
+			isFirstGreaterThanLenOfImgsTotal = false
 			return c.JSON(imgsResult)
 		}
 		var imgsResult database.Images
 		var totalLength = len(imgsTotal.ImagesList)
-		if 30+nextPage < totalLength {
-			imgsResult.ImagesList = imgsTotal.ImagesList[30+nextPage:]
+		fmt.Println("last:", last)
+		fmt.Println("nextPage:", nextPage)
+		fmt.Println("totalLength:", totalLength)
+
+		// if  60   < 73
+		if nextPage < totalLength {
+			imgsResult.ImagesList = imgsTotal.ImagesList[last:nextPage]
+			last = nextPage
 			return c.JSON(imgsResult)
 		}
-		return c.JSON(&fiber.Map{
-			"err": 1,
-			"msg": "到头了",
-		})
+		// 返回数据库最后剩余的
+		if !isFirstGreaterThanLenOfImgsTotal {
+			fmt.Println("last:", last)
+			imgsResult.ImagesList = imgsTotal.ImagesList[last:totalLength]
+			isFirstGreaterThanLenOfImgsTotal = true
+			return c.JSON(imgsResult)
+		}
 
 	}
 	return nil
@@ -215,8 +228,7 @@ func handleUpload(c *fiber.Ctx) error {
 		u4 := uuid.New()
 		fmt.Println(file.Filename, file.Size)
 		// 获取当前年月日
-		timeStr := time.Now().Format("20060102")
-		timeStr = timeStr[:6] + "/" + timeStr[6:]
+		timeStr := time.Now().Format("2006/01/02")
 		fmt.Println("timeStr:", timeStr)
 
 		// 检查文件夹是否存在
