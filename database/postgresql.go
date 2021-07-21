@@ -42,7 +42,7 @@ type User struct {
 }
 
 // Admin admin
-var Admin = []string{"admin_yixuan", "admin_123", "admin_1", "admin_2", "admin_3", "admin_4"}
+var Admin = []string{"admin_yixuan"}
 
 // Connect function
 func Connect() error {

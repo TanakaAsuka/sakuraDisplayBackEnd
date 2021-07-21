@@ -35,7 +35,7 @@ func Registe(app *fiber.App) {
 		}
 		return nil
 	})
-	app.Get("/login", func(c *fiber.Ctx) error {
+	app.Post("/login", func(c *fiber.Ctx) error {
 		log.Printf("IP:%s访问接口login", c.IP())
 
 		return handleLogin(c)
@@ -44,9 +44,9 @@ func Registe(app *fiber.App) {
 	app.Get("/gallery/:next", func(c *fiber.Ctx) error {
 		return handleGallery(c)
 	})
-	app.Get("/pixiv", func(c *fiber.Ctx) error {
-		return handlePixiv(c)
-	})
+	// app.Get("/pixiv", func(c *fiber.Ctx) error {
+	// 	return handlePixiv(c)
+	// })
 	app.Get("/userauth", func(c *fiber.Ctx) error {
 		return handleUserAuth(c)
 	})
@@ -57,17 +57,6 @@ func Registe(app *fiber.App) {
 	app.Post("/delete", func(c *fiber.Ctx) error {
 		log.Printf("IP:%s访问接口delete", c.IP())
 		return handleDelete(c)
-	})
-	app.Get("/test", func(c *fiber.Ctx) error {
-		sess, err := store.Get(c)
-		if err != nil {
-			fmt.Println(err)
-			panic(err)
-		}
-		name := sess.Get("username")
-
-		return c.SendString(fmt.Sprintf("%v", name))
-
 	})
 	app.Static("/", "./public")
 	// 服务静态文件

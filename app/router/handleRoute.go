@@ -305,7 +305,7 @@ func handleDelete(c *fiber.Ctx) error {
 	}
 	// get record from database
 
-	rows, err := database.DB.Query("SELECT * FROM images_table WHERE uuid= $1", picID)
+	rows, err := database.DB.Query("SELECT uuid,url,width_and_height FROM images_table WHERE uuid= $1", picID)
 	defer rows.Close()
 
 	if err != nil {
@@ -334,7 +334,7 @@ func handleDelete(c *fiber.Ctx) error {
 
 	imgPathSlice := strings.Split(image.URL, "/")
 	fmt.Println("imgPathSlice:", imgPathSlice)
-	imgPathSlice = imgPathSlice[len(imgPathSlice)-2:]
+	imgPathSlice = imgPathSlice[3:]
 	imgPathStr := ""
 	for _, v := range imgPathSlice {
 		imgPathStr += "/" + v
