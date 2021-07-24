@@ -15,7 +15,7 @@ const (
 	host     = "localhost"
 	port     = 5432 // Default port
 	user     = "postgres"
-	password = "123456"
+	password = "sakura5179"
 	dbname   = "sakura"
 )
 
