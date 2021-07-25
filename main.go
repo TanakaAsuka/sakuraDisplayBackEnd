@@ -13,7 +13,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Store a session
 func createFolder(path string) {
 	// 检查文件夹是否存在
 	if _, err := os.Stat(path); err == nil {

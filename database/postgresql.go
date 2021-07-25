@@ -49,9 +49,11 @@ func Connect() error {
 	var err error
 	DB, err = sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname))
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	if err = DB.Ping(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 	return nil

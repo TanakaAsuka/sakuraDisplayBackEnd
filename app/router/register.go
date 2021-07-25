@@ -15,10 +15,10 @@ import (
 func handleRegister(c *fiber.Ctx) error {
 
 	if err := database.Connect(); err != nil {
+		fmt.Println(err)
 		log.Fatal(err)
 	}
-
-	fmt.Println()
+	fmt.Println("已连接成功")
 
 	// Add record into postgreSQL
 	username := c.FormValue("username")

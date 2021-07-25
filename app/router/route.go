@@ -20,9 +20,9 @@ func Registe(app *fiber.App) {
 
 	app.Use(func(c *fiber.Ctx) error {
 		// 允许跨域
-		// c.Set("Access-Control-Allow-Origin", "*")
-		// c.Set("Access-Control-Allow-Methods", "GET")
-		// c.Set("Access-Control-Allow-Methods", "POST")
+		c.Set("Access-Control-Allow-Origin", "*")
+		c.Set("Access-Control-Allow-Methods", "GET")
+		c.Set("Access-Control-Allow-Methods", "POST")
 
 		return c.Next()
 	})
