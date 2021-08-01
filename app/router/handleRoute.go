@@ -17,20 +17,18 @@ import (
 // Connect with database
 func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 
-	if err := database.Connect(); err != nil {
-		log.Fatal(err)
-	}
+	// if err := database.Connect(); err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	// Add record into postgreSQL
 
 	// Insert Image into database
 	res, err := database.DB.Query("INSERT INTO images_table (uuid, url, width_and_height) VALUES ($1, $2, $3)", u4, url, WidthAndHeight)
-
+	defer res.Close()
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(res)
 
 	return nil
 
