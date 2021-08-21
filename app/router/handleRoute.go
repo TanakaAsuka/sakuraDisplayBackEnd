@@ -33,7 +33,7 @@ func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 	return nil
 
 }
-func getAllImagesData(c *fiber.Ctx, nextPage int) (database.Images, error) {
+func getAllImagesData(c *fiber.Ctx) (database.Images, error) {
 
 	images := database.Images{}
 
@@ -43,7 +43,9 @@ func getAllImagesData(c *fiber.Ctx, nextPage int) (database.Images, error) {
 	// get record from database
 	// 获取全部的数据，按最新的排序，分批次传给前端，此处数据量大了可能有性能问题
 	// "SELECT * FROM images_table ORDER BY random() LIMIT 100"
-	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY id DESC")
+	// rows, err := database.DB.Query(`SELECT * FROM images_table ORDER BY id DESC`)
+	rows, err := database.DB.Query(`SELECT * FROM images_table ORDER BY random() LIMIT 300`)
+
 	defer rows.Close()
 
 	if err != nil {
@@ -78,7 +80,7 @@ func handleGallery(c *fiber.Ctx) error {
 
 		if nextPage == 30 {
 			// 首次请求
-			imgsTotal, err = getAllImagesData(c, nextPage)
+			imgsTotal, err = getAllImagesData(c)
 			if err != nil {
 				return nil
 			}
@@ -118,6 +120,34 @@ func handleGallery(c *fiber.Ctx) error {
 
 	}
 	return nil
+
+}
+func handleNewPost(c *fiber.Ctx) error {
+
+	images := database.Images{}
+
+	if err := database.Connect(); err != nil {
+		log.Fatal(err)
+	}
+	// get record from database
+	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY id DESC limit 10")
+	defer rows.Close()
+
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		img := database.Image{}
+		if err := rows.Scan(&img.ID, &img.UUID, &img.URL, &img.WidthAndHeight); err != nil {
+			return err // Exit if we get an error
+		}
+
+		// Append Employee to Employees
+		images.ImagesList = append(images.ImagesList, img)
+	}
+	// Return images in JSON format
+	return c.JSON(images)
 
 }
 func handlePixiv(c *fiber.Ctx) error {
