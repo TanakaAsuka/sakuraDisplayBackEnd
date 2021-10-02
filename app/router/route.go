@@ -25,6 +25,18 @@ func Registe(app *fiber.App) {
 			c.Set("Access-Control-Allow-Methods", "GET")
 			c.Set("Access-Control-Allow-Methods", "POST")
 		}
+		// 待测试
+		if c.Hostname() == "moxue.art" {
+			app.Static("/", "./mouxue")
+			// 服务静态文件
+			app.Get("/*", func(c *fiber.Ctx) error {
+				err := c.SendFile("./moxue" + c.Path())
+				if err != nil {
+					return c.SendStatus(404)
+				}
+				return nil
+			})
+		}
 
 		return c.Next()
 	})
@@ -42,9 +54,9 @@ func Registe(app *fiber.App) {
 
 		return handleLogin(c)
 	})
-	app.Get("/newPost", func(c *fiber.Ctx) error {
-		return handleNewPost(c)
-	})
+	// app.Get("/newPost", func(c *fiber.Ctx) error {
+	// 	return handleNewPost(c)
+	// })
 	app.Get("/gallery/:next", func(c *fiber.Ctx) error {
 		return handleGallery(c)
 	})

@@ -14,6 +14,11 @@ import (
 	"github.com/google/uuid"
 )
 
+var imgsTotal database.Images
+var err error
+var last = 30
+var isFirstGreaterThanLenOfImgsTotal = false
+
 // Connect with database
 func insertData(u4 uuid.UUID, url string, WidthAndHeight string) error {
 
@@ -66,11 +71,6 @@ func getAllImagesData(c *fiber.Ctx) (database.Images, error) {
 
 }
 
-var imgsTotal database.Images
-var err error
-var last = 30
-var isFirstGreaterThanLenOfImgsTotal = false
-
 func handleGallery(c *fiber.Ctx) error {
 	offset := c.Params("next")
 	nextPage, err := strconv.Atoi(offset)
@@ -122,34 +122,9 @@ func handleGallery(c *fiber.Ctx) error {
 	return nil
 
 }
-func handleNewPost(c *fiber.Ctx) error {
 
-	images := database.Images{}
+var lastLength = 20
 
-	if err := database.Connect(); err != nil {
-		log.Fatal(err)
-	}
-	// get record from database
-	rows, err := database.DB.Query("SELECT * FROM images_table ORDER BY id DESC limit 10")
-	defer rows.Close()
-
-	if err != nil {
-		return err
-	}
-
-	for rows.Next() {
-		img := database.Image{}
-		if err := rows.Scan(&img.ID, &img.UUID, &img.URL, &img.WidthAndHeight); err != nil {
-			return err // Exit if we get an error
-		}
-
-		// Append Employee to Employees
-		images.ImagesList = append(images.ImagesList, img)
-	}
-	// Return images in JSON format
-	return c.JSON(images)
-
-}
 func handlePixiv(c *fiber.Ctx) error {
 	findType := c.Query("type")
 	pixivID := c.Query("id")
@@ -199,7 +174,9 @@ func handleUserAuth(c *fiber.Ctx) error {
 		"isAdmin":  isAdmin,
 	})
 }
+
 func handleUpload(c *fiber.Ctx) error {
+
 	// 如果用户没登录的话
 	sess, err := store.Get(c)
 	if err != nil {
@@ -230,9 +207,8 @@ func handleUpload(c *fiber.Ctx) error {
 	}
 
 	// 处理登录用户上传的图片
-
 	baseHost := c.BaseURL()
-
+	lastLength++
 	form, err := c.MultipartForm()
 	if err != nil {
 		c.SendStatus(600)
@@ -293,7 +269,6 @@ func handleUpload(c *fiber.Ctx) error {
 			return err
 		}
 	}
-
 	fmt.Println("文件写入成功!")
 	return c.SendStatus(200)
 }

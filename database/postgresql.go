@@ -12,12 +12,12 @@ var DB *sql.DB
 
 // Database settings
 const (
-	host = "localhost"
-	port = 5432 // Default port
-	user = "postgres"
-	// password = "sakura5179"
-	password = "123456"
-	dbname   = "sakura"
+	host     = "localhost"
+	port     = 5432 // Default port
+	user     = "postgres"
+	password = "sakura5179"
+	// password = "123456"
+	dbname = "sakura"
 )
 
 // Image struct
